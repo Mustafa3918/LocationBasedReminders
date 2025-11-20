@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "729999923758",
+    "project_id": "locationbasedreminderfinal",
+    "storage_bucket": "locationbasedreminderfinal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:729999923758:android:3ad4d39366bbf13cec5dbf",
+        "android_client_info": {
+          "package_name": "week11.st292865.finalproject"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa2b0BRfDZpQE042LmmUGf8TSU7IPN584"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
