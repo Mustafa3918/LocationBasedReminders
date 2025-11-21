@@ -37,7 +37,7 @@ class TaskRepository(
         }
 
         val reg = colResult.getOrThrow()
-            .whereEqualTo("isComplete", "false")
+            .whereEqualTo("isComplete", false)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
