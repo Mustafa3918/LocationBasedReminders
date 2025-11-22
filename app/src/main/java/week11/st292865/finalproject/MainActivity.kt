@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import week11.st292865.finalproject.navigation.AppNavGraph
 import week11.st292865.finalproject.ui.theme.AppTheme
 import week11.st292865.finalproject.viewmodel.AuthViewModel
+import week11.st292865.finalproject.viewmodel.TaskViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -18,13 +19,15 @@ class MainActivity : ComponentActivity() {
             AppTheme {
 
                 val authViewModel: AuthViewModel = viewModel()
+                val taskViewModel: TaskViewModel = viewModel()
 
                 val navController = rememberNavController()
 
                 // Pass shared ViewModel into the navigation graph
                 AppNavGraph(
                     navController = navController,
-                    authViewModel = authViewModel
+                    authViewModel = authViewModel,
+                    taskViewModel = taskViewModel
                 )
             }
         }

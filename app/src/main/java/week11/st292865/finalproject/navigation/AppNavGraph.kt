@@ -10,11 +10,13 @@ import week11.st292865.finalproject.ui.screens.ForgotPasswordScreen
 import week11.st292865.finalproject.ui.screens.SettingsScreen
 import week11.st292865.finalproject.ui.screens.HomeScreen
 import week11.st292865.finalproject.viewmodel.AuthViewModel
+import week11.st292865.finalproject.viewmodel.TaskViewModel
 
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    taskViewModel: TaskViewModel
 ) {
 
     NavHost(
@@ -35,7 +37,10 @@ fun AppNavGraph(
         }
 
         composable(Screen.Home.route) {
-            HomeScreen(navController)
+            HomeScreen(
+                navController = navController,
+                taskViewModel = taskViewModel
+            )
         }
 
         composable(Screen.Settings.route) {
