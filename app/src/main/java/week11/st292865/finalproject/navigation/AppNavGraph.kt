@@ -46,5 +46,12 @@ fun AppNavGraph(
         composable(Screen.Settings.route) {
             SettingsScreen(navController)
         }
+
+        composable(Screen.TaskEditor.route) {
+            TaskEditorScreen(
+                navController = navController,
+                taskViewModel = taskViewModel
+            )
+        }
     }
 }

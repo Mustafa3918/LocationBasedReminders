@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
@@ -26,6 +27,7 @@ import week11.st292865.finalproject.ui.theme.PrimaryBlue
 import week11.st292865.finalproject.ui.theme.TextBlack
 import week11.st292865.finalproject.ui.theme.TextGray
 import week11.st292865.finalproject.viewmodel.TaskViewModel
+import androidx.compose.material3.FloatingActionButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,6 +129,17 @@ fun HomeScreen(
                     }
                 }
             }
+        }
+    }
+
+    floatingActionButton = {
+        FloatingActionButton(
+            onClick = {navController.navigate(Screen.TaskEditor.route)}
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "Add Task"
+            )
         }
     }
 }
