@@ -102,4 +102,16 @@ class TaskViewModel (
         _error.value = null
     }
 
+    fun loadCompletedTasks() {
+        viewModelScope.launch {
+            repo.getCompletedTasks().collect { result ->
+                if (result.isSuccess) {
+                    _completedTasks.value = result.getOrDefault(emptyList())
+                } else {
+                    _error.value = result.exceptionOrNull()?.message
+                }
+            }
+        }
+    }
+
 }
