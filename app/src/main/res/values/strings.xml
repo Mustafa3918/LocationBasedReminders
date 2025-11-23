@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">LocationBasedReminders</string>
+    <string name="google_maps_key">AIzaSyB1EwKzWiMyB0htZ-QKZPoAxOLQ09KToDk</string>
+
 </resources>
