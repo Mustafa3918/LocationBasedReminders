@@ -9,9 +9,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import android.content.pm.PackageManager
 
+data class PermissionState(
+    val allGranted: Boolean,
+    val requestPermissions: () -> Unit
+)
+
 @Composable
 fun rememberLocationAndNotificationPermissionState(
-    onAllGranted: () -> Unit
+    onAllGranted: () -> Unit = {}
 ): PermissionState {
     val context = LocalContext.current
 
@@ -29,11 +34,10 @@ fun rememberLocationAndNotificationPermissionState(
 
     var allGranted by remember { mutableStateOf(false) }
 
-    fun checkAllGranted(): Boolean {
-        return required.all {
+    fun checkAllGranted(): Boolean =
+        required.all {
             ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
         }
-    }
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -52,8 +56,3 @@ fun rememberLocationAndNotificationPermissionState(
         requestPermissions = { launcher.launch(required) }
     )
 }
-
-data class PermissionState(
-    val allGranted: Boolean,
-    val requestPermissions: () -> Unit
-)
