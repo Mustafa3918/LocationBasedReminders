@@ -18,22 +18,22 @@ class NotificationHelper(private val context: Context) {
                 "Location Reminders",
                 NotificationManager.IMPORTANCE_HIGH
             )
-            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(channel)
+            val mgr = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            mgr.createNotificationChannel(channel)
         }
     }
 
-    fun showGeofenceTriggered(taskId: String, title: String = "Task Reminder") {
-        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    fun showTriggered(title: String, body: String) {
+        val mgr = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val notification = NotificationCompat.Builder(context, channelId)
+        val n = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
-            .setContentText("You're near a saved task (id=$taskId)")
+            .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
 
-        manager.notify(taskId.hashCode(), notification)
+        mgr.notify(body.hashCode(), n)
     }
 }

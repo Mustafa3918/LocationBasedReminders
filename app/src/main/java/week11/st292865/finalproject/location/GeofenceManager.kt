@@ -5,13 +5,12 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.model.LatLng
 
 class GeofenceManager(private val context: Context) {
 
-    private val geofencingClient = LocationServices.getGeofencingClient(context)
+    private val client = LocationServices.getGeofencingClient(context)
 
-    private val pendingIntent: PendingIntent by lazy {
+    private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(context, GeofenceBroadcastReceiver::class.java)
         PendingIntent.getBroadcast(
             context,
@@ -22,13 +21,17 @@ class GeofenceManager(private val context: Context) {
     }
 
     @SuppressLint("MissingPermission")
-    fun registerGeofences(tasks: List<GeofenceTask>) {
+    fun register(tasks: List<GeofenceTask>) {
         if (tasks.isEmpty()) return
 
         val geofences = tasks.map { t ->
             Geofence.Builder()
                 .setRequestId(t.id)
-                .setCircularRegion(t.latLng.latitude, t.latLng.longitude, t.radiusMeters.toFloat())
+                .setCircularRegion(
+                    t.latLng.latitude,
+                    t.latLng.longitude,
+                    t.radiusMeters.toFloat()
+                )
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .build()
@@ -39,18 +42,11 @@ class GeofenceManager(private val context: Context) {
             .addGeofences(geofences)
             .build()
 
-        geofencingClient.addGeofences(request, pendingIntent)
+        client.addGeofences(request, geofencePendingIntent)
     }
 
-    fun removeGeofences(taskIds: List<String>) {
+    fun remove(taskIds: List<String>) {
         if (taskIds.isEmpty()) return
-        geofencingClient.removeGeofences(taskIds)
+        client.removeGeofences(taskIds)
     }
 }
-
-data class GeofenceTask(
-    val id: String,
-    val latLng: LatLng,
-    val radiusMeters: Int,
-    val title: String
-)

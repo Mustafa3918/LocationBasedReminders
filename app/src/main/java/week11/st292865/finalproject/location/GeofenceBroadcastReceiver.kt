@@ -9,20 +9,32 @@ import com.google.android.gms.location.GeofencingEvent
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+
         val event = GeofencingEvent.fromIntent(intent)
+        if (event == null) {
+            Log.e("GeofenceReceiver", "GeofencingEvent is null")
+            return
+        }
+
         if (event.hasError()) {
-            Log.e("GeofenceReceiver", "Error: ${event.errorCode}")
+            Log.e("GeofenceReceiver", "Error code: ${event.errorCode}")
             return
         }
 
         if (event.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            val ids = event.triggeringGeofences?.map { it.requestId }.orEmpty()
+            val ids = event.triggeringGeofences
+                ?.map { it.requestId }
+                .orEmpty()
 
-            // 这里你可以用 id 去 Firestore 拉 title
-            // 简化：直接通知 “you are near a task”
             ids.forEach { id ->
-                NotificationHelper(context).showGeofenceTriggered(id)
+                NotificationHelper(context).showTriggered(
+                    title = "Location Reminder",
+                    body = "You're near a saved task (id=$id)"
+                )
             }
+        } else {
+            Log.d("GeofenceReceiver", "Transition ignored: ${event.geofenceTransition}")
         }
+
     }
 }
