@@ -2,7 +2,7 @@ package week11.st292865.finalproject.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary brand color (blue)
+// Primary app color (blue)
 val PrimaryBlue = Color(0xFF1A73E8)
 val PrimaryBlueDark = Color(0xFF0C5BD7)
 
