@@ -11,20 +11,35 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import week11.st292865.finalproject.location.LocationService
+import week11.st292865.finalproject.location.LocationUpdates
 import week11.st292865.finalproject.location.rememberLocationAndNotificationPermissionState
 import week11.st292865.finalproject.navigation.Screen
 import week11.st292865.finalproject.ui.theme.AppTypography
 import week11.st292865.finalproject.ui.theme.TextBlack
+import week11.st292865.finalproject.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("MissingPermission")
 @Composable
 fun HomeScreen(navController: NavController) {
+
+    // ---- Settings VM (default radius source) ----
+    val settingsViewModel: SettingsViewModel = viewModel()
+    val userState by settingsViewModel.user.collectAsState()
+
+    LaunchedEffect(Unit) {
+        settingsViewModel.loadUser()
+    }
+
+    val defaultRadius = userState.defaultRadius  // future use for tasks/geofence
+
 
     val permissionState = rememberLocationAndNotificationPermissionState()
 
@@ -96,23 +111,45 @@ fun HomeScreen(navController: NavController) {
             return@Scaffold
         }
 
-        // -------- Main Layout (Scheme A) --------
+        // -------- Main Layout --------
         val context = androidx.compose.ui.platform.LocalContext.current
         val locationService = remember { LocationService(context) }
+        val updates = remember { LocationUpdates(context) }
 
         var myLocation by remember { mutableStateOf<LatLng?>(null) }
         var pickedLocation by remember { mutableStateOf<LatLng?>(null) }
 
-        // get last known location once
-        LaunchedEffect(Unit) {
-            myLocation = locationService.getLastKnownLatLng()
-        }
+        var firstFix by remember { mutableStateOf(true) }
 
+
+        // 1) define cameraPositionState（default Toronto）
         val cameraPositionState = rememberCameraPositionState {
             position = CameraPosition.fromLatLngZoom(
-                myLocation ?: LatLng(43.6532, -79.3832), // default Toronto
+                LatLng(43.6532, -79.3832),
                 13f
             )
+        }
+
+        // 2) pull fresh location（init）
+        LaunchedEffect(Unit) {
+            myLocation = locationService.getFreshLatLng()
+        }
+
+        // 3) keep receive location updates
+        LaunchedEffect(Unit) {
+            updates.locationFlow().collect { latLng ->
+                myLocation = latLng
+            }
+        }
+
+        // 4) myLocation move cam if location changed
+        LaunchedEffect(myLocation) {
+            if (firstFix && myLocation != null) {
+                firstFix = false
+                cameraPositionState.animate(
+                    update = CameraUpdateFactory.newLatLngZoom(myLocation!!, 14f)
+                )
+            }
         }
 
         Column(
