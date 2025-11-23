@@ -63,4 +63,21 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Google Play Services - Location (FusedLocation + Geofencing)
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    // Google Maps + Maps Compose
+    implementation("com.google.maps.android:maps-compose:4.3.3")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+
+    // Compose Map tool
+    implementation("com.google.maps.android:maps-compose-utils:4.3.3")
+
+    // WorkManager for UC5
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
+    // permission management
+    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+
 }
