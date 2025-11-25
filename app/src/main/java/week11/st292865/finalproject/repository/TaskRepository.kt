@@ -1,6 +1,7 @@
 package week11.st292865.finalproject.repository
 
 import androidx.compose.runtime.snapshotFlow
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -81,7 +82,10 @@ class TaskRepository(
             val colRef = userTasksCollection().getOrElse { return Result.failure(it) }
             val docRef = colRef.document()
             val data = task.copy(
-                createdAt = task.createdAt ?: com.google.firebase.Timestamp.now()
+                id = docRef.id,
+                isComplete = false,
+                createdAt = Timestamp.now(),
+                completedAt = null
             )
             docRef.set(data).await()
             Result.success(Unit)
@@ -95,7 +99,13 @@ class TaskRepository(
         val id = task.id ?: return Result.failure(Exception("Task id is null"))
         return try {
             val colRef = userTasksCollection().getOrElse { return Result.failure(it) }
-            colRef.document(id).set(task).await()
+            colRef.document(id).set(
+                task.copy(
+                    id = id,
+                    completedAt = task.completedAt,
+                    createdAt = task.createdAt
+                )
+            ).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

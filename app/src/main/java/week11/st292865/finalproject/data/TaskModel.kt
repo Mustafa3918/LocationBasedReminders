@@ -16,7 +16,9 @@ data class TaskModel (
     val longitude: Double? = null,
     val radiusMeters: Int = 200,
 
-    val isComplete: Boolean = false,
+    @get:PropertyName("isComplete")
+    @set:PropertyName("isComplete")
+    var isComplete: Boolean = false,
 
     //Timestamps
     @get:PropertyName("createdAt")
