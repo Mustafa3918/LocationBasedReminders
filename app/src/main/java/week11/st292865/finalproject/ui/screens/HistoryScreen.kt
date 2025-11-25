@@ -26,10 +26,6 @@ fun HistoryScreen(
     val completedTasksState = taskViewModel.completedTasks.collectAsState()
     val errorState = taskViewModel.error.collectAsState()
 
-    // Start observing when screen appears
-    LaunchedEffect(Unit) {
-        taskViewModel.loadCompletedTasks()
-    }
 
     Scaffold(
         topBar = {

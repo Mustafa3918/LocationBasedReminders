@@ -28,6 +28,7 @@ import week11.st292865.finalproject.ui.theme.TextBlack
 import week11.st292865.finalproject.ui.theme.TextGray
 import week11.st292865.finalproject.viewmodel.TaskViewModel
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +36,9 @@ fun HomeScreen(
     navController: NavController,
     taskViewModel: TaskViewModel
 ) {
+    LaunchedEffect(Unit) {
+        taskViewModel.startObservingTasks()
+    }
 
     Scaffold(
         topBar = {
@@ -66,6 +70,16 @@ fun HomeScreen(
                 HorizontalDivider(
                     color = TextBlack,
                     thickness = 1.dp
+                )
+            }
+        },
+                floatingActionButton = {
+            FloatingActionButton(
+                onClick = {navController.navigate(Screen.TaskEditor.route)}
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Task"
                 )
             }
         }
@@ -129,17 +143,6 @@ fun HomeScreen(
                     }
                 }
             }
-        }
-    }
-
-    floatingActionButton = {
-        FloatingActionButton(
-            onClick = {navController.navigate(Screen.TaskEditor.route)}
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add Task"
-            )
         }
     }
 }

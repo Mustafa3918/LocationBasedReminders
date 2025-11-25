@@ -1,6 +1,5 @@
 package week11.st292865.finalproject.viewmodel
 
-import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +25,17 @@ class TaskViewModel (
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
-    init { observeActiveTasks()}
+    //causing errors on launch, calling firestore to auth user before login screen and crashing
+    // will call from UI after auth
+//    init {
+//        observeActiveTasks()
+//        observeCompletedTasks()
+//    }
+
+    fun startObservingTasks() {
+        observeActiveTasks()
+        observeCompletedTasks()
+    }
 
     //observers
     private fun observeActiveTasks() {
@@ -102,7 +111,7 @@ class TaskViewModel (
         _error.value = null
     }
 
-    fun loadCompletedTasks() {
+    private fun observeCompletedTasks() {
         viewModelScope.launch {
             repo.getCompletedTasks().collect { result ->
                 if (result.isSuccess) {
