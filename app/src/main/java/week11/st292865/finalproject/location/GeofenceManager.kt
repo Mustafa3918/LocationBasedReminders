@@ -12,13 +12,20 @@ class GeofenceManager(private val context: Context) {
 
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(context, GeofenceBroadcastReceiver::class.java)
+
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or
+                (if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S)
+                    PendingIntent.FLAG_MUTABLE
+                else 0)
+
         PendingIntent.getBroadcast(
             context,
             0,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            flags
         )
     }
+
 
     @SuppressLint("MissingPermission")
     fun register(tasks: List<GeofenceTask>) {

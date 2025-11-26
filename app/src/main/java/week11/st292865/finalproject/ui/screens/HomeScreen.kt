@@ -25,6 +25,8 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import week11.st292865.finalproject.data.TaskModel
+import week11.st292865.finalproject.location.GeofenceManager
+import week11.st292865.finalproject.location.GeofenceTask
 import week11.st292865.finalproject.location.LocationService
 import week11.st292865.finalproject.location.LocationUpdates
 import week11.st292865.finalproject.location.rememberLocationAndNotificationPermissionState
@@ -140,6 +142,9 @@ fun HomeScreen(
         var pickedLocation by remember { mutableStateOf<LatLng?>(null) }
         var firstFix by remember { mutableStateOf(true) }
 
+        val geofenceManager = remember { GeofenceManager(context) }
+
+
         // 1) define cameraPositionState (default Toronto)
         val cameraPositionState = rememberCameraPositionState {
             position = CameraPosition.fromLatLngZoom(
@@ -176,6 +181,30 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
+            // --- Collect state from TaskViewModel (UC3/UC4/UC6) ---
+            val tasksState = taskViewModel.activeTasks.collectAsState()
+            val isLoadingState = taskViewModel.isLoading.collectAsState()
+            val errorState = taskViewModel.error.collectAsState()
+
+            val activeTasksWithLocation = tasksState.value.filter { t ->
+                t.latitude != null && t.longitude != null && t.id != null && !t.isComplete
+            }
+
+            val geofenceTasks = activeTasksWithLocation.map { t ->
+                val radius = if (t.radiusMeters > 0) t.radiusMeters else defaultRadius
+
+                GeofenceTask(
+                    id = t.id!!,
+                    title = t.title,
+                    latLng = LatLng(t.latitude!!, t.longitude!!),
+                    radiusMeters = radius
+                )
+            }
+
+            // UC5: register/update geofences whenever active tasks change
+            LaunchedEffect(geofenceTasks) {
+                geofenceManager.register(geofenceTasks)
+            }
 
             // --- Map Section (UC4 Map + UC5/UC7 support) ---
             Text(
@@ -193,38 +222,28 @@ fun HomeScreen(
                 GoogleMap(
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState,
-                    properties = MapProperties(
-                        isMyLocationEnabled = true
-                    ),
+                    properties = MapProperties(isMyLocationEnabled = true),
                     uiSettings = MapUiSettings(
                         myLocationButtonEnabled = true,
                         zoomControlsEnabled = false
                     ),
                     onMapLongClick = { latLng ->
                         pickedLocation = latLng
-                        // TODO (UC3 later): navigate to TaskEditor with coords if needed
-                        // navController.navigate(Screen.TaskEditor.route + "?lat=${latLng.latitude}&lng=${latLng.longitude}")
                     }
                 ) {
-                    // Temporary marker when user long-presses
                     pickedLocation?.let { pos ->
-                        Marker(
-                            state = MarkerState(pos),
-                            title = "Picked Location"
-                        )
+                        Marker(state = MarkerState(pos), title = "Picked Location")
                     }
 
-                    // TODO (UC4 later): show task markers / geofence circles
-                    // tasksState.value.forEach { task -> ... }
+                    // UC4: show task markers + geofence circles
+                    geofenceTasks.forEach { gt ->
+                        Marker(state = MarkerState(gt.latLng), title = gt.title)
+                        Circle(center = gt.latLng, radius = gt.radiusMeters.toDouble())
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-
-            // --- Collect state from TaskViewModel (UC3/UC4/UC6) ---
-            val tasksState = taskViewModel.activeTasks.collectAsState()
-            val isLoadingState = taskViewModel.isLoading.collectAsState()
-            val errorState = taskViewModel.error.collectAsState()
 
             // Buffering indicator
             if (isLoadingState.value) {
@@ -286,6 +305,7 @@ fun HomeScreen(
                 style = AppTypography.bodyMedium
             )
         }
+
     }
 }
 
