@@ -123,4 +123,8 @@ class TaskViewModel (
         }
     }
 
+    fun getTaskById(taskId: String): TaskModel? {
+        return activeTasks.value.find {it.id == taskId}
+    }
+
 }
