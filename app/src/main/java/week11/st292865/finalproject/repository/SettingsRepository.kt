@@ -6,10 +6,10 @@ import kotlinx.coroutines.tasks.await
 import week11.st292865.finalproject.data.UserModel
 
 class SettingsRepository(
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance(),
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) {
-
+    private val firestore: FirebaseFirestore
+        get() = FirebaseFirestore.getInstance()
     private fun userDoc() : Result<com.google.firebase.firestore.DocumentReference> {
         val user = auth.currentUser
         return if (user == null) {
@@ -51,5 +51,6 @@ class SettingsRepository(
 
     fun logout() {
         auth.signOut()
+        firestore.clearPersistence()
     }
 }

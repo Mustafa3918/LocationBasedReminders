@@ -16,26 +16,29 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import week11.st292865.finalproject.navigation.Screen
 import week11.st292865.finalproject.ui.theme.*
+import week11.st292865.finalproject.viewmodel.AuthViewModel
 import week11.st292865.finalproject.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    viewModel: SettingsViewModel = viewModel()
+    settingsViewModel: SettingsViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
+
 ) {
 
-    val userState by viewModel.user.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val success by viewModel.success.collectAsState()
+    val userState by settingsViewModel.user.collectAsState()
+    val isLoading by settingsViewModel.isLoading.collectAsState()
+    val error by settingsViewModel.error.collectAsState()
+    val success by settingsViewModel.success.collectAsState()
     var displayNameError by remember { mutableStateOf<String?>(null) }
     var displayName by remember { mutableStateOf("") }
     var radius by remember { mutableStateOf(200f) }
 
     // Load user on first entry
     LaunchedEffect(Unit) {
-        viewModel.loadUser()
+        settingsViewModel.loadUser()
     }
 
     // Updates UI when userState changes
@@ -46,8 +49,8 @@ fun SettingsScreen(
 
     LaunchedEffect(success) {
         if (success) {
-            viewModel.loadUser()
-            viewModel.clearSuccess()
+            settingsViewModel.loadUser()
+            settingsViewModel.clearSuccess()
         }
     }
 
@@ -121,7 +124,7 @@ fun SettingsScreen(
 
                 // Email — Read-only field
                 OutlinedTextField(
-                    value = viewModel.getCurrentUserEmail(),
+                    value = settingsViewModel.getCurrentUserEmail(),
                     onValueChange = {},
                     enabled = false,
                     modifier = Modifier.fillMaxWidth(),
@@ -175,7 +178,7 @@ fun SettingsScreen(
                             return@Button
                         }
 
-                        viewModel.saveSettings(displayName, radius.toInt())
+                        settingsViewModel.saveSettings(displayName, radius.toInt())
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Settings.route) { inclusive = true }
                         }
@@ -220,13 +223,15 @@ fun SettingsScreen(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .clickable {
-                            viewModel.logout()
+                            authViewModel.logout()
+
                             navController.navigate(Screen.Login.route) {
                                 popUpTo(Screen.Home.route) { inclusive = true }
                             }
                         },
                     style = AppTypography.bodyMedium
                 )
+
             }
         }
     }

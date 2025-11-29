@@ -59,6 +59,7 @@ fun HomeScreen(
     val settingsViewModel: SettingsViewModel = viewModel()
     val userState by settingsViewModel.user.collectAsState()
 
+
     LaunchedEffect(Unit) {
         settingsViewModel.loadUser()
     }
@@ -68,6 +69,13 @@ fun HomeScreen(
 
     // ---- Permissions (location + notifications) ----
     val permissionState = rememberLocationAndNotificationPermissionState()
+
+    LaunchedEffect(Unit) {
+        if (!permissionState.allGranted) {
+            permissionState.requestPermissions()
+        }
+    }
+
 
     Scaffold(
         topBar = {

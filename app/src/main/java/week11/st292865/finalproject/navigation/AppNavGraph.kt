@@ -1,6 +1,8 @@
 package week11.st292865.finalproject.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,7 +17,6 @@ import week11.st292865.finalproject.ui.screens.TaskEditorScreen
 import week11.st292865.finalproject.viewmodel.AuthViewModel
 import week11.st292865.finalproject.viewmodel.TaskViewModel
 import week11.st292865.finalproject.ui.screens.HistoryScreen
-
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
@@ -23,9 +24,12 @@ fun AppNavGraph(
     taskViewModel: TaskViewModel
 ) {
 
+    // Observe login state for login persistance
+    val isLoggedIn = authViewModel.isUserLoggedIn.collectAsState().value
+
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = if (isLoggedIn) Screen.Home.route else Screen.Login.route
     ) {
 
         composable(Screen.Login.route) {
@@ -48,7 +52,11 @@ fun AppNavGraph(
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen(navController = navController)
+            SettingsScreen(
+                navController = navController,
+                settingsViewModel = viewModel(),
+                authViewModel = authViewModel
+            )
         }
 
         composable(
@@ -60,9 +68,9 @@ fun AppNavGraph(
                     defaultValue = null
                 }
             )
-        ) {backStackEntry ->
+        ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getString(Screen.TaskEditor.ARG_TASK_ID)
-            val existingTask = taskId?.let {id -> taskViewModel.getTaskById(id)}
+            val existingTask = taskId?.let { id -> taskViewModel.getTaskById(id) }
 
             TaskEditorScreen(
                 navController = navController,
@@ -79,4 +87,3 @@ fun AppNavGraph(
         }
     }
 }
-
