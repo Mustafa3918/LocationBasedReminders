@@ -6,6 +6,9 @@ sealed class Screen(val route: String) {
     object ForgotPassword : Screen("forgot_password")
     object Home : Screen("home")
     object Settings : Screen("settings")
-    object TaskEditor : Screen("task_editor")
+    object TaskEditor : Screen("task_editor") {
+        const val ARG_TASK_ID = "taskId"
+        fun routeWithTaskId(taskId: String): String = "$route?$ARG_TASK_ID=$taskId"
+    }
     object History : Screen("history")
 }

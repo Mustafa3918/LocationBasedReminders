@@ -2,8 +2,10 @@ package week11.st292865.finalproject.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import week11.st292865.finalproject.ui.screens.LoginScreen
 import week11.st292865.finalproject.ui.screens.RegisterScreen
 import week11.st292865.finalproject.ui.screens.ForgotPasswordScreen
@@ -45,14 +47,23 @@ fun AppNavGraph(
             )
         }
 
-        composable(Screen.Settings.route) {
-            SettingsScreen(navController)
-        }
+        composable(
+            route = "${Screen.TaskEditor.route}?${Screen.TaskEditor.ARG_TASK_ID}={${Screen.TaskEditor.ARG_TASK_ID}}",
+            arguments = listOf(
+                navArgument(Screen.TaskEditor.ARG_TASK_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) {backStackEntry ->
+            val taskId = backStackEntry.arguments?.getString(Screen.TaskEditor.ARG_TASK_ID)
+            val existingTask = taskId?.let {id -> taskViewModel.getTaskById(id)}
 
-        composable(Screen.TaskEditor.route) {
             TaskEditorScreen(
                 navController = navController,
-                taskViewModel = taskViewModel
+                taskViewModel = taskViewModel,
+                existingTask = existingTask
             )
         }
 
@@ -64,3 +75,4 @@ fun AppNavGraph(
         }
     }
 }
+

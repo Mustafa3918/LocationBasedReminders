@@ -3,6 +3,7 @@ package week11.st292865.finalproject.ui.screens
 import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,6 +41,8 @@ import week11.st292865.finalproject.ui.theme.TextGray
 import week11.st292865.finalproject.viewmodel.SettingsViewModel
 import week11.st292865.finalproject.viewmodel.TaskViewModel
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("MissingPermission")
 @Composable
@@ -76,7 +79,7 @@ fun HomeScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "Linked Lists - Location Based Reminder App",
+                                "Linked Lists",
                                 style = AppTypography.headlineMedium
                             )
                         }
@@ -89,6 +92,15 @@ fun HomeScreen(
                                 .padding(end = 20.dp)
                                 .clickable { navController.navigate(Screen.Settings.route) }
                         )
+                        TextButton(
+                            onClick = {navController.navigate(Screen.History.route)}
+                        ) {
+                            Text(
+                                text = "History",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                style = AppTypography.bodyLarge
+                            )
+                        }
                     }
                 )
                 Divider(color = TextBlack, thickness = 1.dp)
@@ -269,6 +281,18 @@ fun HomeScreen(
             )
             Spacer(modifier = Modifier.height(6.dp))
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = {navController.navigate(Screen.History.route)}) {
+                    Text("View History")
+                }
+            }
+
+
             if (tasksState.value.isEmpty()) {
                 Text(
                     text = "No active tasks currently.\nMake sure to add one!",
@@ -290,7 +314,7 @@ fun HomeScreen(
                                 task.id?.let { id -> taskViewModel.deleteTask(id) }
                             },
                             onClick = {
-                                // TODO: navigate to editor with existing task when wiring args
+                                task.id?.let {id -> navController.navigate("${Screen.TaskEditor.route}?taskId=$id")}
                             }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
