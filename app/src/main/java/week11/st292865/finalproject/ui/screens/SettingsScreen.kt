@@ -176,6 +176,9 @@ fun SettingsScreen(
                         }
 
                         viewModel.saveSettings(displayName, radius.toInt())
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Settings.route) { inclusive = true }
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
