@@ -33,7 +33,7 @@ fun TaskEditorScreen(
     navController: NavController,
     taskViewModel: TaskViewModel,
     existingTask: TaskModel? = null,
-    // Optional preset coordinates if we navigate here from Home map long-press
+    settingsViewModel: SettingsViewModel,
     presetLat: Double? = null,
     presetLng: Double? = null
 ) {
@@ -41,32 +41,28 @@ fun TaskEditorScreen(
     val locationService = remember { LocationService(context) }
     val scope = rememberCoroutineScope()
 
-    // Settings ViewModel provides the default radius for NEW tasks
-    val settingsViewModel: SettingsViewModel = viewModel()
     val userState by settingsViewModel.user.collectAsState()
 
-    // Load user settings on first entry
-    LaunchedEffect(Unit) { settingsViewModel.loadUser() }
-
-    // Fallback to 200m if Firestore user doc is missing or radius is invalid
-    val defaultRadius = userState.defaultRadius.takeIf { it > 0 } ?: 200
-
-    // Form states
-    var title by remember { mutableStateOf(existingTask?.title ?: "") }
-    var note by remember { mutableStateOf(existingTask?.note ?: "") }
-
-    // Radius: use task radius when editing, otherwise use user default radius
-    var radius by remember {
-        mutableStateOf(
-            existingTask?.radiusMeters?.toFloat()
-                ?: defaultRadius.toFloat()
-        )
+    // Load user preferences (including defaultRadius)
+    LaunchedEffect(Unit) {
+        settingsViewModel.loadUser()
     }
 
-    // Picked location:
-    // 1) Use existing task location if editing
-    // 2) Use preset location if passed from Home
-    // 3) Otherwise start as null until user picks a spot
+    var radius by remember { mutableStateOf(200f) }
+
+    LaunchedEffect(userState, existingTask) {
+        radius = when {
+            existingTask != null ->
+                existingTask.radiusMeters?.toFloat() ?: 200f
+
+            userState.defaultRadius > 0 ->
+                userState.defaultRadius.toFloat()
+
+            else -> 200f
+        }
+    }
+
+    // LOCATION SELECTION
     var pickedLocation by remember {
         mutableStateOf(
             when {
@@ -79,15 +75,13 @@ fun TaskEditorScreen(
         )
     }
 
-    // Camera state for the embedded picker map
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
-            pickedLocation ?: LatLng(43.6532, -79.3832), // Default Toronto
+            pickedLocation ?: LatLng(43.6532, -79.3832),
             13f
         )
     }
 
-    // Whenever pickedLocation changes, zoom the camera to that point
     LaunchedEffect(pickedLocation) {
         pickedLocation?.let {
             cameraPositionState.animate(
@@ -95,7 +89,6 @@ fun TaskEditorScreen(
             )
         }
     }
-
 
     Scaffold(
         topBar = {
@@ -143,7 +136,9 @@ fun TaskEditorScreen(
             verticalArrangement = Arrangement.Top
         ) {
 
-            // Task title
+            var title by remember { mutableStateOf(existingTask?.title ?: "") }
+            var note by remember { mutableStateOf(existingTask?.note ?: "") }
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -153,7 +148,6 @@ fun TaskEditorScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Optional task note
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
@@ -163,7 +157,6 @@ fun TaskEditorScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Radius selector
             Text("Radius: ${radius.toInt()} meters", style = AppTypography.bodyMedium)
             Slider(
                 value = radius,
@@ -175,7 +168,6 @@ fun TaskEditorScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Location picker map
             Text("Pick a Location", style = AppTypography.bodyMedium)
             Spacer(Modifier.height(8.dp))
 
@@ -192,12 +184,10 @@ fun TaskEditorScreen(
                         myLocationButtonEnabled = true,
                         zoomControlsEnabled = false
                     ),
-                    // Long-press to select a location
                     onMapLongClick = { latLng ->
                         pickedLocation = latLng
                     }
                 ) {
-                    // Show marker + radius circle for the selected location
                     pickedLocation?.let { pos ->
                         Marker(state = MarkerState(pos), title = "Task Location")
                         Circle(center = pos, radius = radius.toDouble())
@@ -207,7 +197,6 @@ fun TaskEditorScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            // Use device current location as the task location
             Button(
                 onClick = {
                     scope.launch {
@@ -225,13 +214,11 @@ fun TaskEditorScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Save/Create task
             Button(
                 onClick = {
                     val loc = pickedLocation
 
                     if (existingTask == null) {
-                        // Create new task
                         taskViewModel.addTask(
                             TaskModel(
                                 title = title,
@@ -242,7 +229,6 @@ fun TaskEditorScreen(
                             )
                         )
                     } else {
-                        // Update existing task
                         taskViewModel.updateTask(
                             existingTask.copy(
                                 title = title,

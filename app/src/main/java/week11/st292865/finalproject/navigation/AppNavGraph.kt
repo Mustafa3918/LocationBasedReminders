@@ -17,6 +17,8 @@ import week11.st292865.finalproject.ui.screens.TaskEditorScreen
 import week11.st292865.finalproject.viewmodel.AuthViewModel
 import week11.st292865.finalproject.viewmodel.TaskViewModel
 import week11.st292865.finalproject.ui.screens.HistoryScreen
+import week11.st292865.finalproject.viewmodel.SettingsViewModel
+
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
@@ -71,12 +73,14 @@ fun AppNavGraph(
         ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getString(Screen.TaskEditor.ARG_TASK_ID)
             val existingTask = taskId?.let { id -> taskViewModel.getTaskById(id) }
+            val settingsViewModel: SettingsViewModel = viewModel()
 
             TaskEditorScreen(
                 navController = navController,
                 taskViewModel = taskViewModel,
-                existingTask = existingTask
-            )
+                existingTask = existingTask,
+                settingsViewModel = settingsViewModel
+                )
         }
 
         composable(Screen.History.route) {
