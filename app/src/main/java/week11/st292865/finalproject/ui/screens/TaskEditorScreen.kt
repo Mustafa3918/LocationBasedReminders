@@ -2,8 +2,11 @@ package week11.st292865.finalproject.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -17,7 +20,9 @@ import kotlinx.coroutines.launch
 import week11.st292865.finalproject.data.TaskModel
 import week11.st292865.finalproject.location.LocationService
 import week11.st292865.finalproject.ui.theme.AppTypography
+import week11.st292865.finalproject.ui.theme.BackgroundWhite
 import week11.st292865.finalproject.ui.theme.PrimaryBlue
+import week11.st292865.finalproject.ui.theme.TextBlack
 import week11.st292865.finalproject.viewmodel.SettingsViewModel
 import week11.st292865.finalproject.viewmodel.TaskViewModel
 
@@ -91,17 +96,43 @@ fun TaskEditorScreen(
         }
     }
 
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (existingTask == null) "New Task" else "Edit Task",
-                        style = AppTypography.headlineMedium
+            Column {
+                TopAppBar(
+                    title = {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (existingTask == null) "New Task" else "Edit Task",
+                                style = AppTypography.headlineMedium
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = TextBlack
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = BackgroundWhite
                     )
-                }
-            )
+                )
+
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = TextBlack
+                )
+            }
         }
+
     ) { padding ->
 
         Column(
