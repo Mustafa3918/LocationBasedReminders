@@ -47,6 +47,10 @@ fun AppNavGraph(
             )
         }
 
+        composable(Screen.Settings.route) {
+            SettingsScreen(navController = navController)
+        }
+
         composable(
             route = "${Screen.TaskEditor.route}?${Screen.TaskEditor.ARG_TASK_ID}={${Screen.TaskEditor.ARG_TASK_ID}}",
             arguments = listOf(
