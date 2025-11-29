@@ -48,7 +48,8 @@ import week11.st292865.finalproject.viewmodel.TaskViewModel
 @Composable
 fun HomeScreen(
     navController: NavController,
-    taskViewModel: TaskViewModel
+    taskViewModel: TaskViewModel,
+    settingsViewModel: SettingsViewModel
 ) {
     // Start observing tasks once user reaches Home (after auth)
     LaunchedEffect(Unit) {
@@ -201,6 +202,15 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "Welcome, ${userState.displayName}",
+                style = AppTypography.headlineMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             // --- Collect state from TaskViewModel (UC3/UC4/UC6) ---
             val tasksState = taskViewModel.activeTasks.collectAsState()
             val isLoadingState = taskViewModel.isLoading.collectAsState()
@@ -287,7 +297,6 @@ fun HomeScreen(
                 text = "Task List",
                 style = AppTypography.bodyLarge
             )
-            Spacer(modifier = Modifier.height(6.dp))
 
             Row(
                 modifier = Modifier

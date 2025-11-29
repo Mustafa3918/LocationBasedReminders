@@ -47,9 +47,11 @@ fun AppNavGraph(
         }
 
         composable(Screen.Home.route) {
+            val settingsViewModel: SettingsViewModel = viewModel()
             HomeScreen(
                 navController = navController,
-                taskViewModel = taskViewModel
+                taskViewModel = taskViewModel,
+                settingsViewModel = settingsViewModel
             )
         }
 
