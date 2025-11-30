@@ -2,8 +2,11 @@ package week11.st292865.finalproject.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -17,7 +20,9 @@ import kotlinx.coroutines.launch
 import week11.st292865.finalproject.data.TaskModel
 import week11.st292865.finalproject.location.LocationService
 import week11.st292865.finalproject.ui.theme.AppTypography
+import week11.st292865.finalproject.ui.theme.BackgroundWhite
 import week11.st292865.finalproject.ui.theme.PrimaryBlue
+import week11.st292865.finalproject.ui.theme.TextBlack
 import week11.st292865.finalproject.viewmodel.SettingsViewModel
 import week11.st292865.finalproject.viewmodel.TaskViewModel
 
@@ -28,7 +33,7 @@ fun TaskEditorScreen(
     navController: NavController,
     taskViewModel: TaskViewModel,
     existingTask: TaskModel? = null,
-    // Optional preset coordinates if we navigate here from Home map long-press
+    settingsViewModel: SettingsViewModel,
     presetLat: Double? = null,
     presetLng: Double? = null
 ) {
@@ -36,32 +41,28 @@ fun TaskEditorScreen(
     val locationService = remember { LocationService(context) }
     val scope = rememberCoroutineScope()
 
-    // Settings ViewModel provides the default radius for NEW tasks
-    val settingsViewModel: SettingsViewModel = viewModel()
     val userState by settingsViewModel.user.collectAsState()
 
-    // Load user settings on first entry
-    LaunchedEffect(Unit) { settingsViewModel.loadUser() }
-
-    // Fallback to 200m if Firestore user doc is missing or radius is invalid
-    val defaultRadius = userState.defaultRadius.takeIf { it > 0 } ?: 200
-
-    // Form states
-    var title by remember { mutableStateOf(existingTask?.title ?: "") }
-    var note by remember { mutableStateOf(existingTask?.note ?: "") }
-
-    // Radius: use task radius when editing, otherwise use user default radius
-    var radius by remember {
-        mutableStateOf(
-            existingTask?.radiusMeters?.toFloat()
-                ?: defaultRadius.toFloat()
-        )
+    // Load user preferences (including defaultRadius)
+    LaunchedEffect(Unit) {
+        settingsViewModel.loadUser()
     }
 
-    // Picked location:
-    // 1) Use existing task location if editing
-    // 2) Use preset location if passed from Home
-    // 3) Otherwise start as null until user picks a spot
+    var radius by remember { mutableStateOf(200f) }
+
+    LaunchedEffect(userState, existingTask) {
+        radius = when {
+            existingTask != null ->
+                existingTask.radiusMeters?.toFloat() ?: 200f
+
+            userState.defaultRadius > 0 ->
+                userState.defaultRadius.toFloat()
+
+            else -> 200f
+        }
+    }
+
+    // LOCATION SELECTION
     var pickedLocation by remember {
         mutableStateOf(
             when {
@@ -74,15 +75,13 @@ fun TaskEditorScreen(
         )
     }
 
-    // Camera state for the embedded picker map
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
-            pickedLocation ?: LatLng(43.6532, -79.3832), // Default Toronto
+            pickedLocation ?: LatLng(43.6532, -79.3832),
             13f
         )
     }
 
-    // Whenever pickedLocation changes, zoom the camera to that point
     LaunchedEffect(pickedLocation) {
         pickedLocation?.let {
             cameraPositionState.animate(
@@ -93,15 +92,40 @@ fun TaskEditorScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (existingTask == null) "New Task" else "Edit Task",
-                        style = AppTypography.headlineMedium
+            Column {
+                TopAppBar(
+                    title = {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (existingTask == null) "New Task" else "Edit Task",
+                                style = AppTypography.headlineMedium
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = TextBlack
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = BackgroundWhite
                     )
-                }
-            )
+                )
+
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = TextBlack
+                )
+            }
         }
+
     ) { padding ->
 
         Column(
@@ -112,17 +136,34 @@ fun TaskEditorScreen(
             verticalArrangement = Arrangement.Top
         ) {
 
-            // Task title
+            var title by remember { mutableStateOf(existingTask?.title ?: "") }
+            var note by remember { mutableStateOf(existingTask?.note ?: "") }
+
+            // NEW ERROR STATE
+            var titleError by remember { mutableStateOf<String?>(null) }
+
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = {
+                    title = it
+                    titleError = null
+                },
                 label = { Text("Task Title") },
+                isError = titleError != null,
                 modifier = Modifier.fillMaxWidth()
             )
 
+            if (titleError != null) {
+                Text(
+                    text = titleError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = AppTypography.bodyMedium,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+
             Spacer(Modifier.height(16.dp))
 
-            // Optional task note
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
@@ -132,7 +173,6 @@ fun TaskEditorScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Radius selector
             Text("Radius: ${radius.toInt()} meters", style = AppTypography.bodyMedium)
             Slider(
                 value = radius,
@@ -144,7 +184,6 @@ fun TaskEditorScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Location picker map
             Text("Pick a Location", style = AppTypography.bodyMedium)
             Spacer(Modifier.height(8.dp))
 
@@ -161,12 +200,10 @@ fun TaskEditorScreen(
                         myLocationButtonEnabled = true,
                         zoomControlsEnabled = false
                     ),
-                    // Long-press to select a location
                     onMapLongClick = { latLng ->
                         pickedLocation = latLng
                     }
                 ) {
-                    // Show marker + radius circle for the selected location
                     pickedLocation?.let { pos ->
                         Marker(state = MarkerState(pos), title = "Task Location")
                         Circle(center = pos, radius = radius.toDouble())
@@ -176,7 +213,6 @@ fun TaskEditorScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            // Use device current location as the task location
             Button(
                 onClick = {
                     scope.launch {
@@ -194,13 +230,17 @@ fun TaskEditorScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Save/Create task
             Button(
                 onClick = {
+                    // VALIDATION
+                    if (title.isBlank()) {
+                        titleError = "Task title cannot be empty."
+                        return@Button
+                    }
+
                     val loc = pickedLocation
 
                     if (existingTask == null) {
-                        // Create new task
                         taskViewModel.addTask(
                             TaskModel(
                                 title = title,
@@ -211,7 +251,6 @@ fun TaskEditorScreen(
                             )
                         )
                     } else {
-                        // Update existing task
                         taskViewModel.updateTask(
                             existingTask.copy(
                                 title = title,
