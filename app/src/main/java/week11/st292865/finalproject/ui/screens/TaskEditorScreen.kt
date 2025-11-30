@@ -139,12 +139,28 @@ fun TaskEditorScreen(
             var title by remember { mutableStateOf(existingTask?.title ?: "") }
             var note by remember { mutableStateOf(existingTask?.note ?: "") }
 
+            // NEW ERROR STATE
+            var titleError by remember { mutableStateOf<String?>(null) }
+
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = {
+                    title = it
+                    titleError = null
+                },
                 label = { Text("Task Title") },
+                isError = titleError != null,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            if (titleError != null) {
+                Text(
+                    text = titleError!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = AppTypography.bodyMedium,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
@@ -216,6 +232,12 @@ fun TaskEditorScreen(
 
             Button(
                 onClick = {
+                    // VALIDATION
+                    if (title.isBlank()) {
+                        titleError = "Task title cannot be empty."
+                        return@Button
+                    }
+
                     val loc = pickedLocation
 
                     if (existingTask == null) {
