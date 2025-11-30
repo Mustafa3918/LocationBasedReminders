@@ -20,6 +20,21 @@ class AuthViewModel(
     private val _success = MutableStateFlow(false)
     val success = _success.asStateFlow()
 
+    // Tracks user  already logged in
+    private val _isUserLoggedIn = MutableStateFlow(false)
+    val isUserLoggedIn = _isUserLoggedIn.asStateFlow()
+
+    init {
+        // Check if Firebase already has a logged-in user
+        _isUserLoggedIn.value = authRepo.getCurrentUser() != null
+    }
+
+    fun logout() {
+        authRepo.logout()
+        _isUserLoggedIn.value = false
+    }
+
+
     // ---------------- LOGIN ----------------
     fun login(email: String, password: String) {
         _isLoading.value = true
@@ -32,6 +47,7 @@ class AuthViewModel(
 
             if (result.isSuccess) {
                 _success.value = true
+                _isUserLoggedIn.value = true
             } else {
                 _errorMessage.value = result.exceptionOrNull()?.message
             }
@@ -50,6 +66,7 @@ class AuthViewModel(
 
             if (result.isSuccess) {
                 _success.value = true
+                _isUserLoggedIn.value = true
             } else {
                 _errorMessage.value = result.exceptionOrNull()?.message
             }

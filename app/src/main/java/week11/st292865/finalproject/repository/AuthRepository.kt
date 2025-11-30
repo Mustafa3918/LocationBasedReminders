@@ -7,12 +7,18 @@ import kotlinx.coroutines.tasks.await
 
 class AuthRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
+    // Always return a fresh Firestore instance (fixes stale auth token issue)
+    private val firestore: FirebaseFirestore
+        get() = FirebaseFirestore.getInstance()
 
     suspend fun login(email: String, password: String): Result<Unit> {
         return try {
             auth.signInWithEmailAndPassword(email, password).await()
+
+            // Force Firestore to drop old cached auth state
+            firestore.clearPersistence()
+
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -36,6 +42,9 @@ class AuthRepository(
                 .set(data, SetOptions.merge())
                 .await()
 
+            // Refresh persistence after creating user
+            firestore.clearPersistence()
+
             Result.success(Unit)
 
         } catch (e: Exception) {
@@ -54,7 +63,10 @@ class AuthRepository(
 
     fun logout() {
         auth.signOut()
+        // Drop cached login session so next user isn't using old token
+        firestore.clearPersistence()
     }
 
     fun currentUser() = auth.currentUser
+    fun getCurrentUser() = auth.currentUser
 }
