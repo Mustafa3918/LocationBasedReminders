@@ -25,6 +25,14 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.core.content.ContextCompat
 import week11.st292865.finalproject.data.TaskModel
 import week11.st292865.finalproject.location.GeofenceManager
 import week11.st292865.finalproject.location.GeofenceTask
@@ -196,12 +204,56 @@ fun HomeScreen(
             }
         }
 
+        fun openAppSettings(context: Context) {
+            val intent = Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", context.packageName, null)
+            )
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        }
+
+        val hasBackgroundLocation =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            } else true
+
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
+            if (!hasBackgroundLocation) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Column(Modifier.padding(12.dp)) {
+                        Text(
+                            "Background Location Required",
+                            style = AppTypography.bodyLarge
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "To receive location reminders reliably, please set Location permission to 'Allow all the time'.",
+                            style = AppTypography.bodyMedium
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Button(onClick = { openAppSettings(context) }) {
+                            Text("Open Settings")
+                        }
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = "Welcome, ${userState.displayName}",
@@ -232,9 +284,15 @@ fun HomeScreen(
             }
 
             // UC5: register/update geofences whenever active tasks change
-            LaunchedEffect(geofenceTasks) {
-                geofenceManager.register(geofenceTasks)
+            LaunchedEffect(geofenceTasks, hasBackgroundLocation) {
+                if (hasBackgroundLocation) {
+                    geofenceManager.register(geofenceTasks)
+                } else {
+                    // optional: remove any fences to avoid stale registration
+                    geofenceManager.remove(geofenceTasks.map { it.id })
+                }
             }
+
 
             // --- Map Section (UC4 Map + UC5/UC7 support) ---
             Text(
