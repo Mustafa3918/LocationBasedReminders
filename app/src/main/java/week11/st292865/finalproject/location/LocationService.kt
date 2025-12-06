@@ -12,7 +12,7 @@ class LocationService(context: Context) {
 
     /**
      * Get a reasonably fresh location once.
-     * 1) Try last known location (fast)
+     * 1) Try last known location
      * 2) If null, request current high-accuracy location once
      */
     @SuppressLint("MissingPermission")
